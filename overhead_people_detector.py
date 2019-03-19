@@ -67,26 +67,6 @@ totalUp = 0
 # start the frames per second throughput estimator
 fps = FPS().start()
 
-# initialize the video writer (we'll instantiate later if need be)
-writer = None
-
-# initialize the frame dimensions (we'll set them as soon as we read the first frame from the video)
-W = None
-H = None
-
-# instantiate our centroid tracker, then initialize a list to store each of our dlib correlation trackers, followed by a dictionary to map each unique object ID to a TrackableObject
-ct = CentroidTracker(maxDisappeared=40, maxDistance=50)
-trackers = []
-trackableObjects = {}
-
-# initialize the total number of frames processed thus far, along with the total number of objects that have moved either up or down
-totalFrames = 0
-totalDown = 0
-totalUp = 0
-
-# start the frames per second throughput estimator
-fps = FPS().start()
-
 # loop over frames from the video stream
 while True:
     # grab the next frame and handle if we are reading from either VideoCapture or VideoStream
@@ -173,14 +153,14 @@ while True:
             # add the bounding box coordinates to the rectangles list
             rects.append((startX, startY, endX, endY))
 
-    # draw a horizontal line in the center of the frame -- once an object crosses this line we will determine whether they were moving 'up' or 'down'
-    cv2.line(frame, (0, H // 2), (W, H // 2), (0, 255, 255), 2)
+    # # draw a horizontal line in the center of the frame -- once an object crosses this line we will determine whether they were moving 'up' or 'down'
+    # cv2.line(frame, (0, H // 2), (W, H // 2), (0, 255, 255), 2)
 
-    # use the centroid tracker to associate the (1) old object centroids with (2) the newly computed object centroids
-    objects = ct.update(rects)
+    # # use the centroid tracker to associate the (1) old object centroids with (2) the newly computed object centroids
+    # objects = ct.update(rects)
 
-    # draw a horizontal line in the center of the frame -- once an object crosses this line we will determine whether they were moving 'up' or 'down'
-    cv2.line(frame, (0, H // 2), (W, H // 2), (0, 255, 255), 2)
+    # # draw a horizontal line in the center of the frame -- once an object crosses this line we will determine whether they were moving 'up' or 'down'
+    # cv2.line(frame, (0, H // 2), (W, H // 2), (0, 255, 255), 2)
 
     # use the centroid tracker to associate the (1) old object centroids with (2) the newly computed object centroids
     objects = ct.update(rects)
@@ -231,6 +211,8 @@ while True:
         ("Up", totalUp),
         ("Down", totalDown),
         ("Status", status),
+        ("Total", totalUp + totalDown),
+        ("Current", len(objects)),
     ]
 
     # loop over the info tuples and draw them on our frame
