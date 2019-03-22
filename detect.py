@@ -4,6 +4,7 @@ from imageai.Detection import ObjectDetection
 import os
 import urllib.request
 import datetime
+from PIL import Image
 
 def main():
 	# Current working directory.
@@ -24,13 +25,17 @@ def main():
 	file_in = "images/in/" + str(now) + '.jpg'
 	urllib.request.urlretrieve(url, file_in)
 
+	file_out = "images/out/output.jpg"
 	# Detect objects and create an output file with squares around objects.
 	detections = detector.detectCustomObjectsFromImage(
 		custom_objects=custom_objects,
 		input_image=file_in,
-		output_image_path="images/out/output.jpg",
+		output_image_path=file_out,
 		minimum_percentage_probability=27
 	)
+
+	# Open output image on user's device.
+	Image.open(file_out).show()
 
 	# Delete the input file after detecting objects.
 	os.remove(file_in)
