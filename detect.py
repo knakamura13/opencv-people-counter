@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 
-from imageai.Detection import ObjectDetection
 import os
-import urllib.request
+import cv2
+import time
 import datetime
+import urllib.request
 from PIL import Image
+from imageai.Detection import ObjectDetection
+
+# Prepare video capture on camera #0.
+cap = cv2.VideoCapture(0)
+cv2.namedWindow("PyCam")
 
 def main():
 	# Current working directory.
@@ -19,30 +25,63 @@ def main():
 	# Select which object types will be detected.
 	custom_objects = detector.CustomObjects(person=True)
 
-	# Download file from any URL.
-	url = "https://si.wsj.net/public/resources/images/BN-RT702_0124ch_H_20170124110410.jpg"
-	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-	file_in = "images/in/" + str(now) + '.jpg'
-	urllib.request.urlretrieve(url, file_in)
+	# Initalize counter for naming new files.
+	img_counter = 0
 
-	file_out = "images/out/output.jpg"
-	# Detect objects and create an output file with squares around objects.
-	detections = detector.detectCustomObjectsFromImage(
-		custom_objects=custom_objects,
-		input_image=file_in,
-		output_image_path=file_out,
-		minimum_percentage_probability=27
-	)
+	file_to_delete = ""
 
-	# Open output image on user's device.
-	Image.open(file_out).show()
+	start_time = 0
 
-	# Delete the input file after detecting objects.
-	os.remove(file_in)
+	while(True):
+		# Capture the current frame.
+		ret, frame = cap.read()
 
-	# Write the number of detected objects to a text file.
-	with open('output.txt', 'w+') as f:
-		f.write("Detections: {}".format(str(len(detections))))
+		# Display the resulting frame.
+		cv2.imshow('frame',frame)
+
+		# Quit program on Escape key press.
+		k = cv2.waitKey(1)
+		if k % 256 == 27:
+			break
+
+		if time.time() - start_time > 5:
+			inputfile = "images/in/input_frame_{}.png".format(img_counter)
+			outputfile = "images/out/output_frame_{}.png".format(img_counter)
+
+			img_counter += 1
+
+			# Create a new image file from the current frame.
+			cv2.imwrite(inputfile, frame)
+
+			# Detect objects and create an output file with squares around objects.
+			detections = detector.detectCustomObjectsFromImage(
+				custom_objects=custom_objects,
+				input_image=inputfile,
+				output_image_path=outputfile,
+				minimum_percentage_probability=40
+			)
+
+			# Write the number of detected objects to a text file.
+			with open('output.txt', 'w+') as f:
+				f.write("Detections: {}".format(str(len(detections))))
+
+			# Delete the input file.
+			os.remove(inputfile)
+
+			# Delete the previous output file.
+			try:
+				os.remove(file_to_delete)
+			except:
+				# Do nothing.
+				pass
+
+			# Set the next file to be deleted to the current output file.
+			file_to_delete = outputfile
+
+			# Open output image on user's device.
+			Image.open(outputfile).show()
+
+			start_time = time.time()
 
 if __name__ == "__main__":
 	main()
