@@ -7,6 +7,8 @@ import datetime
 import urllib.request
 from PIL import Image
 from imageai.Detection import ObjectDetection
+import json
+import requests
 
 # Prepare video capture on camera #0.
 cap = cv2.VideoCapture(0)
@@ -32,7 +34,7 @@ def main():
 
 	start_time = 0
 
-	while(True):
+	while(True):		
 		# Capture the current frame.
 		ret, frame = cap.read()
 
@@ -45,9 +47,14 @@ def main():
 			break
 
 		if time.time() - start_time > 5:
+			# Record the time for this specific frame capture.
+			current_time = str(datetime.datetime.now())
+
+			# Define the current input file and output file to run the detector script on.
 			inputfile = "images/in/input_frame_{}.png".format(img_counter)
 			outputfile = "images/out/output_frame_{}.png".format(img_counter)
 
+			# Increment img_counter for naming image files.
 			img_counter += 1
 
 			# Create a new image file from the current frame.
@@ -61,9 +68,17 @@ def main():
 				minimum_percentage_probability=40
 			)
 
-			# Write the number of detected objects to a text file.
-			with open('output.txt', 'w+') as f:
-				f.write("Detections: {}".format(str(len(detections))))
+			# Get the length of the detections npArray as a String.
+			num_detections = str(len(detections))
+
+			# Pepare JSON data to be sent to the API.
+			data_json = json.dumps({
+				"people": num_detections,
+				"time" : current_time
+			})
+
+			# POST the data to the API.
+			response = requests.post("http://127.0.0.1:5000/", data=data_json, headers={'Content-type': 'application/json'})
 
 			# Delete the input file.
 			os.remove(inputfile)
@@ -80,8 +95,11 @@ def main():
 
 			# Open output image on user's device.
 			Image.open(outputfile).show()
-
+			
 			start_time = time.time()
+
+		# Sleep the CPU for 0.2 seconds to preserve energy.
+		time.sleep(0.2)
 
 if __name__ == "__main__":
 	main()

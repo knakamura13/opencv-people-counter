@@ -1,23 +1,36 @@
-#!/usr/bin/env python
-
-from flask import Flask, jsonify, request, send_from_directory
-import subprocess
+from flask import Flask, jsonify, request
 import json
+import datetime
 
 app = Flask(__name__)
-app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
-@app.route("/")
-def hello():
-	proc = subprocess.Popen([
-		'python3', 'detect.py',
-		# Set parameters; example: `param=argument` or just `option`.
-		'default'
-		], 
-		stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+@app.route('/', methods=['GET', 'POST'])
+def index():
+	# POST method.
+	if (request.method == 'POST'):
+		post_json = request.get_json()
 
-	# Return file contents of `output.txt`.
-	return send_from_directory('', 'output.txt')
+		# Write json to file.
+		with open('output.txt', 'w') as outfile:
+			json.dump(post_json, outfile)
+
+		data = {}
+		
+		# Read data from file.
+		with open('output.txt') as json_file:
+			data = json.load(json_file)
+
+		# Return the new data, indicating the POST was successful.
+		return jsonify({'result' : data}), 201
+	# GET method.
+	else:
+		data = {}
+		
+		# Read data from file.
+		with open('output.txt') as json_file:
+			data = json.load(json_file)
+
+		return jsonify({'result' : data})
 
 if __name__ == '__main__':
     app.run(debug=True)
