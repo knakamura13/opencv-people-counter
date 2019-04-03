@@ -22,7 +22,7 @@ def main():
 	detector = ObjectDetection()
 	detector.setModelTypeAsRetinaNet()
 	detector.setModelPath("models/resnet50_coco_best_v2.0.1.h5")
-	detector.loadModel(detection_speed="fast")
+	detector.loadModel(detection_speed="fastest") #options=["normal", "fast", "faster", "fastest", "flash"]
 
 	# Select which object types will be detected.
 	custom_objects = detector.CustomObjects(person=True)
@@ -65,12 +65,12 @@ def main():
 				custom_objects=custom_objects,
 				input_image=inputfile,
 				output_image_path=outputfile,
-				minimum_percentage_probability=40
+				minimum_percentage_probability=33
 			)
 
 			# Get the length of the detections npArray as a String.
 			num_detections = str(len(detections))
-
+                        
 			# Pepare JSON data to be sent to the API.
 			data_json = json.dumps({
 				"people": num_detections,
@@ -78,7 +78,7 @@ def main():
 			})
 
 			# POST the data to the API.
-			response = requests.post("http://127.0.0.1:5000/", data=data_json, headers={'Content-type': 'application/json'})
+			response = requests.post("https://api-cameras-psmbl.cloudapps.ose.apu.edu/", data=data_json, headers={'Content-type': 'application/json'}, verify=False)
 
 			# Delete the input file.
 			os.remove(inputfile)
