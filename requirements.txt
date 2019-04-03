@@ -8,4 +8,4 @@ opencv-python==4.0.0.21
 pandas==0.24.1
 Pillow==5.4.1
 requests==2.21.0
-imageai==2.0.2
+https://github.com/OlafenwaMoses/ImageAI/releases/download/2.0.2/imageai-2.0.2-py3-none-any.whl 
